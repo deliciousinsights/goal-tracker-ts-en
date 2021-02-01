@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardActions from '@mui/material/CardActions'
@@ -38,12 +40,19 @@ export default function TrackerScreen() {
       <CardActions>
         <Button
           color='secondary'
+          component={Link}
           startIcon={<HistoryIcon />}
+          to='/history'
           variant='contained'
         >
           History
         </Button>
-        <Button startIcon={<SettingsIcon />} variant='contained'>
+        <Button
+          component={Link}
+          startIcon={<SettingsIcon />}
+          to='/settings'
+          variant='contained'
+        >
           Settings
         </Button>
       </CardActions>
