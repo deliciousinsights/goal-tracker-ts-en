@@ -1,0 +1,54 @@
+{
+  "short_name": "Goal Tracker",
+  "name": "Goal Tracker",
+  "description": "An app used as a main line of teaching for the React PWA training (TS Edition) by Delicious Insights.",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "shortcuts": [
+    {
+      "name": "See history",
+      "short_name": "History",
+      "description": "Displays the progress history in previous days.",
+      "url": "/history",
+      "icons": [
+        {
+          "src": "shortcut-history.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Change settings",
+      "short_name": "Settings",
+      "description": "Displays the goal settings and logout screen.",
+      "url": "/settings",
+      "icons": [
+        {
+          "src": "shortcut-settings.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
