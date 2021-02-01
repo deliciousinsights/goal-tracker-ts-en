@@ -14,7 +14,7 @@ describe('Close Day reducer', () => {
   // (compute history entry, add it to the history, reset today's data)
   it('should properly add the current progressions to the history and reset for a new day', () => {
     const initialState: RootState = {
-      config: { rehydrated: true },
+      config: { canNotify: false, canPromptForNotify: true, rehydrated: true },
       currentUser: { loginState: 'logged-in', email: 'john@example.com' },
       goals: [
         mockGoal({ id: '1', target: 5 }),
