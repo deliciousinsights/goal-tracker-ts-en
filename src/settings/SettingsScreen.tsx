@@ -17,11 +17,13 @@ import ListItemText from '@mui/material/ListItemText'
 import Logout from '@mui/icons-material/ExitToApp'
 import Typography from '@mui/material/Typography'
 
+import { addGoal, removeGoal, updateGoal } from '../reducers/goals'
+import AddSettingDialog from './AddSettingDialog'
+import type { ASDState } from './AddSettingDialog'
 import DeleteSettingDialog from './DeleteSettingDialog'
 import type { Goal } from '../reducers/goals'
 import GoalSetting from './GoalSetting'
 import { logOut } from '../reducers/currentUser'
-import { removeGoal } from '../reducers/goals'
 import type { RootState } from '../store'
 import { useAppDispatch, useAppSelector } from '../store'
 
@@ -66,6 +68,7 @@ export default function SettingsScreen() {
                 goal={goal}
                 key={goal.id}
                 onDeleteClick={openGoalDeleter}
+                onEditClick={openGoalEditor}
               />
             ))}
             {goals.length === 0 && (
@@ -76,11 +79,24 @@ export default function SettingsScreen() {
           </List>
         </CardContent>
         <CardActions>
-          <Button color='primary' startIcon={<Add />} variant='contained'>
+          <Button
+            color='primary'
+            onClick={openGoalAdder}
+            startIcon={<Add />}
+            variant='contained'
+          >
             Add a goal
           </Button>
         </CardActions>
       </Card>
+      <AddSettingDialog
+        goal={goal}
+        key={'id' in goal ? goal.id : null}
+        onAdd={addOrUpdateGoal}
+        onCancel={closeDialogs}
+        onClosed={resetGoal}
+        open={dialog === 'add-or-update'}
+      />
       <DeleteSettingDialog
         goal={goal}
         onCancel={closeDialogs}
@@ -91,6 +107,18 @@ export default function SettingsScreen() {
     </>
   )
 
+  function addOrUpdateGoal({ id, name, target, units, keepOpen }: ASDState) {
+    if (id !== undefined) {
+      dispatch(updateGoal({ id, name, target, units }))
+      keepOpen = false
+    } else {
+      dispatch(addGoal({ name, target, units }))
+    }
+    if (!keepOpen) {
+      closeDialogs()
+    }
+  }
+
   function closeDialogs() {
     setState({ goal, dialog: null })
   }
@@ -100,8 +128,16 @@ export default function SettingsScreen() {
     closeDialogs()
   }
 
+  function openGoalAdder() {
+    setState({ goal: {}, dialog: 'add-or-update' })
+  }
+
   function openGoalDeleter(goal: Goal) {
     setState({ goal, dialog: 'delete' })
+  }
+
+  function openGoalEditor(goal: Goal) {
+    setState({ goal, dialog: 'add-or-update' })
   }
 
   function resetGoal() {
