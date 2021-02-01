@@ -6,8 +6,15 @@ import Typography from '@mui/material/Typography'
 import classes from './TrackerScreen.module.css'
 import Gauge from '../shared/Gauge'
 
-// Expected props: `goal` and `progress`
-export default function GoalTrackerWidget({ FIXME }) {
+interface GTWProps {
+  goal: Goal
+  progress: number
+}
+
+export default function GoalTrackerWidget({
+  goal: { name, units, target },
+  progress,
+}: GTWProps) {
   const adderComponent =
     target > progress ? (
       <Fab
