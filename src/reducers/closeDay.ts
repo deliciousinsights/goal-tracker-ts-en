@@ -18,9 +18,9 @@ export const closeDay = createAction(
 // -------
 
 export default createReducer<RootState>({} as RootState, (builder) => {
-  builder.addCase(closeDay, (state, action) => {
+  builder.addCase(closeDay, (state, { payload }) => {
     state.history = tallyPreviousDay(state)
-    state.today = isoDate(new Date())
+    state.today = isoDate(payload.date)
     state.todaysProgress = {}
   })
 })
