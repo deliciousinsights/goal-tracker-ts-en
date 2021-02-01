@@ -7,8 +7,37 @@ import HistoryIcon from '@mui/icons-material/History'
 import SettingsIcon from '@mui/icons-material/Settings'
 
 import classes from './TrackerScreen.module.css'
+import { formatDate, getDayCounts } from '../lib/helpers'
+import Gauge from '../shared/Gauge'
+import store from '../store'
 
 export default function TrackerScreen() {
-  // Your code here, instead of this 👇🏻
-  return <p>TrackerScreen coming soon</p>
+  const { goals, today, todaysProgress } = store
+  return (
+    <Card className={classes.goalTracker}>
+      <CardHeader
+        subheader={<Gauge {...overallProgress()} />}
+        title={formatDate(today, 'medium')}
+      />
+      <CardContent>FIXME</CardContent>
+      <CardActions>
+        <Button
+          color='secondary'
+          startIcon={<HistoryIcon />}
+          variant='contained'
+        >
+          History
+        </Button>
+        <Button startIcon={<SettingsIcon />} variant='contained'>
+          Settings
+        </Button>
+      </CardActions>
+    </Card>
+  )
+
+  function overallProgress() {
+    const { totalProgress, totalTarget } = getDayCounts(todaysProgress, goals)
+
+    return { value: totalProgress, max: totalTarget }
+  }
 }
