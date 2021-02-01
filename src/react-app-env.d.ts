@@ -4,13 +4,6 @@
 // now our helpers and components need them already, so they need to be
 // accessible to the type engine!
 
-declare type Goal = {
-  id: string
-  name: string
-  target: number
-  units: string
-}
-
 declare type HistoryEntry = {
   date: string
   progresses: {
