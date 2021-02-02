@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head><title>settings/DeleteSettingDialog</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="settings/DeleteSettingDialog"><meta name="groc-project-path" content="src/settings/DeleteSettingDialog.tsx"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/settings/DeleteSettingDialog.tsx</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="goal-deletion-dialog">Goal Deletion Dialog</h1></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>This is always included in the Settings screen, so can be &quot;rendered&quot; with a
+nullish or empty goal.  Its props get updated as the screen changes which
+goal it operates on.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> Button from <span class="hljs-string">'@mui/material/Button'</span>
+<span class="hljs-keyword">import</span> Clear from <span class="hljs-string">'@mui/icons-material/Clear'</span>
+<span class="hljs-keyword">import</span> Dialog from <span class="hljs-string">'@mui/material/Dialog'</span>
+<span class="hljs-keyword">import</span> DialogActions from <span class="hljs-string">'@mui/material/DialogActions'</span>
+<span class="hljs-keyword">import</span> DialogContent from <span class="hljs-string">'@mui/material/DialogContent'</span>
+<span class="hljs-keyword">import</span> DialogContentText from <span class="hljs-string">'@mui/material/DialogContentText'</span>
+<span class="hljs-keyword">import</span> DialogTitle from <span class="hljs-string">'@mui/material/DialogTitle'</span>
+<span class="hljs-keyword">import</span> useMediaQuery from <span class="hljs-string">'@mui/material/useMediaQuery'</span>
+
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { Goal } from <span class="hljs-string">'../reducers/goals'</span>
+
+<span class="hljs-interface"><span class="hljs-keyword">interface</span> DSDProps </span>{
+  goal: Goal | { name?: <span class="hljs-built_in">string</span> }
+  onDelete: () =&gt; <span class="hljs-built_in">void</span>
+  onCancel: () =&gt; <span class="hljs-built_in">void</span>
+  onClosed?: () =&gt; <span class="hljs-built_in">void</span>
+  open: <span class="hljs-built_in">boolean</span>
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">DeleteSettingDialog</span>(<span class="hljs-params">{
+  goal = {},
+  onCancel,
+  onClosed,
+  onDelete,
+  open,
+}: DSDProps</span>) </span>{
+  <span class="hljs-keyword">const</span> smallViewport = useMediaQuery(<span class="hljs-string">'(max-width: 480px)'</span>)
+  <span class="hljs-keyword">return</span> (
+    &lt;Dialog
+      aria-labelledby=<span class="hljs-string">'deleteGoalTitle'</span>
+      fullScreen={smallViewport}
+      onClose={onCancel}
+      open={open}
+      TransitionProps={{
+        onExited: onClosed,
+      }}
+    &gt;
+      &lt;DialogTitle id=<span class="hljs-string">'deleteGoalTitle'</span>&gt;Delete a goal&lt;<span class="hljs-regexp">/DialogTitle&gt;
+      &lt;DialogContent&gt;
+        &lt;DialogContentText&gt;Delete the “{goal.name}” goal?&lt;/</span>DialogContentText&gt;
+      &lt;<span class="hljs-regexp">/DialogContent&gt;
+      &lt;DialogActions&gt;
+        &lt;Button color='secondary' onClick={onCancel}&gt;
+          Oh noes!
+        &lt;/</span>Button&gt;
+        &lt;Button color=<span class="hljs-string">'primary'</span> onClick={onDelete} startIcon={&lt;Clear /&gt;}&gt;
+          Drop it.
+        &lt;<span class="hljs-regexp">/Button&gt;
+      &lt;/</span>DialogActions&gt;
+    &lt;<span class="hljs-regexp">/Dialog&gt;
+  )
+}
+</span></div></div></div></div></body></html>

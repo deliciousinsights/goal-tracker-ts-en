@@ -1,5 +1,5 @@
-// Store-level (reducer spec)
-// ==========================
+// Root reducer (reducer spec)
+// ===========================
 
 import { subDays } from 'date-fns'
 

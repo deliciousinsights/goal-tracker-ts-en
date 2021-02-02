@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="en"><head><title>lib/clock</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="lib/clock"><meta name="groc-project-path" content="src/lib/clock.ts"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/lib/clock.ts</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="daily-reset-core-engine">Daily reset (core engine)</h1></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The day&#39;s progress are reset every night at midnight, after having been added
+to our history.  The more common trigger, though, is when the app boots and
+its app state stores an earlier day: we then need to historize and reset
+immediately.</p>
+<p>The data processing is done by the reducer: this module is all about
+dispatching the action at the right times, and notifying the user.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> { addSeconds, differenceInCalendarDays, parseISO } from <span class="hljs-string">'date-fns'</span>
+
+<span class="hljs-keyword">import</span> clockIcon from <span class="hljs-string">'../icons/clock-reset.png'</span>
+<span class="hljs-keyword">import</span> { closeDay } from <span class="hljs-string">'../reducers/closeDay'</span>
+<span class="hljs-keyword">import</span> store from <span class="hljs-string">'../store'</span>
+
+<span class="hljs-keyword">const</span> STAMP_FORMATTER = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Intl</span>.DateTimeFormat(<span class="hljs-string">'en-GB'</span>, {
+  hour: <span class="hljs-string">'2-digit'</span>,
+  minute: <span class="hljs-string">'2-digit'</span>,
+  second: <span class="hljs-string">'2-digit'</span>,
+})</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Start checking the time every second, so we can trigger at midnight.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">const</span> clock = setInterval(checkClock, <span class="hljs-number">1000</span>)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Also check whether we&#39;re operating on an earlier day, hydrated back at app
+boot time, which would need an immediate trigger.</p></div></div><div class="code"><div class="wrapper">checkForTodaysFirstUse()
+
+<span class="hljs-keyword">if</span> (<span class="hljs-module"><span class="hljs-keyword">module</span>.hot) </span>{
+  <span class="hljs-module"><span class="hljs-keyword">module</span>.hot.accept()</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>During dev, HMR on this module means we need to be careful not to have
+multiple timer intervals overlapping.  So before a new version of the
+module comes in and gets run again, we clean up resources the current
+version booked, such as the interval timer.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-module"><span class="hljs-keyword">module</span>.hot.dispose(() =&gt; </span>{
+    clearInterval(clock)
+  })
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>In production, we reset at midnight.  In dev, we reset 5 seconds post-load,
+which is easier for interactive testing.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">const</span> HISTORY_TRIGGER_TIME =
+  process.env.NODE_ENV === <span class="hljs-string">'production'</span>
+    ? <span class="hljs-string">'00:00:00'</span>
+    : STAMP_FORMATTER.format(addSeconds(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(), <span class="hljs-number">5</span>))</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="deadline-trigger">Deadline trigger</h2></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>When the webapp is open, we check for time every second to see whether we
+reached Midnight and need to trigger.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">checkClock</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> now = STAMP_FORMATTER.format(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>())
+
+  <span class="hljs-keyword">if</span> (now === HISTORY_TRIGGER_TIME) {
+    closePreviousDay()
+  }
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="stale-state-boot-trigger">Stale-state boot trigger</h2></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>When the webapp loads and this module runs, we subscribe to the store in
+order to wait for its hydration to be complete (before hydration, our app
+state would default to today anyway, which needs no trigger).  Once hydration
+is over, we can check whether we&#39;re on the current day, or an older day that
+needs triggering.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">checkForTodaysFirstUse</span>(<span class="hljs-params"></span>) </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>In order to unsub once we&#39;re hydrated, we grab the bespoke unsub function
+we get as a result of the <code>subscribe()</code>call, for later use.  This is a
+common pub/sub API pattern.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">const</span> unsub = store.subscribe(() =&gt; {
+    <span class="hljs-keyword">const</span> { config, today } = store.getState()
+    <span class="hljs-keyword">if</span> (!config.rehydrated) {
+      <span class="hljs-keyword">return</span>
+    }
+
+    unsub()
+
+    <span class="hljs-keyword">const</span> storesLastDay = parseISO(today)
+    <span class="hljs-keyword">if</span> (differenceInCalendarDays(storesLastDay, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>()) &lt; <span class="hljs-number">0</span>) {
+      closePreviousDay()
+    }
+  })
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="internal-utilities">Internal utilities</h2></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Trigger historization and notify the user (if we can).</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">closePreviousDay</span>(<span class="hljs-params"></span>) </span>{
+  store.dispatch(closeDay())
+
+  notify({
+    title: <span class="hljs-string">'Done for today!'</span>,
+    text: <span class="hljs-string">'Your progress was historized and starts anew.'</span>,</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Notice that <code>clockIcon</code> is actually a URL here, obtained through <code>import</code>
+thanks to the bundler&#39;s asset import configuration (e.g. Webpack&#39;s
+<a href="https://github.com/webpack/url-loader"><code>url-loader</code></a> and
+<a href="https://github.com/webpack/file-loader"><code>file-loader</code></a>).  If that PNG is
+below 10KB, it&#39;ll get inlined as Base64 in our bundle instead of getting
+its own file, which is deemed a better tradeoff.</p></div></div><div class="code"><div class="wrapper">    icon: clockIcon,
+    secondsVisible: <span class="hljs-number">4</span>,
+  })
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Generic notification with controlled automatic closure.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">notify</span>(<span class="hljs-params">{
+  title,
+  text,
+  icon,
+  secondsVisible = 0,
+}: {
+  title: <span class="hljs-built_in">string</span>
+  text: <span class="hljs-built_in">string</span>
+  icon: <span class="hljs-built_in">string</span>
+  secondsVisible?: <span class="hljs-built_in">number</span>
+}</span>) </span>{
+  <span class="hljs-keyword">if</span> (!store.getState().config.canNotify) {
+    <span class="hljs-keyword">return</span>
+  }
+
+  <span class="hljs-keyword">const</span> requireInteraction =
+    <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">window</span>.Notification.prototype.close === <span class="hljs-string">'function'</span> &amp;&amp;
+    secondsVisible &gt; <span class="hljs-number">0</span>
+  <span class="hljs-keyword">const</span> notif = <span class="hljs-keyword">new</span> <span class="hljs-built_in">window</span>.Notification(title, {
+    body: text,
+    icon,
+    lang: <span class="hljs-string">'en'</span>,
+    requireInteraction,
+    tag: <span class="hljs-string">'goal-tracker'</span>,
+    vibrate: [<span class="hljs-number">100</span>, <span class="hljs-number">50</span>, <span class="hljs-number">100</span>, <span class="hljs-number">50</span>, <span class="hljs-number">100</span>],
+  })
+
+  <span class="hljs-keyword">if</span> (requireInteraction) {
+    notif.addEventListener(<span class="hljs-string">'show'</span>, () =&gt; {
+      setTimeout(() =&gt; notif.close(), secondsVisible * <span class="hljs-number">1000</span>)
+    })
+  }
+}</div></div></div></div></body></html>

@@ -1,3 +1,6 @@
+// History (reducer)
+// =================
+
 import { createAction, createReducer } from '@reduxjs/toolkit'
 
 export type HistoryEntry = {

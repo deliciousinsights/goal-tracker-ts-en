@@ -8,7 +8,7 @@ import reducer, { clearHistory } from './history'
 // The reducer should…
 describe('History reducer', () => {
   // …provide its default state
-  // ----------------------------
+  // --------------------------
   it('should return its initial state', () => {
     const initialState = undefined
     const expectedState: HistoryEntry[] = []

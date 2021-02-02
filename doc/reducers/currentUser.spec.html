@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en"><head><title>reducers/currentUser.spec</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="reducers/currentUser.spec"><meta name="groc-project-path" content="src/reducers/currentUser.spec.ts"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/reducers/currentUser.spec.ts</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="current-user-reducer-spec">Current user (reducer spec)</h1></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> reducer, {
+  logIn,
+  logInFailure,
+  logInSuccess,
+  logOut,
+} from <span class="hljs-string">'./currentUser'</span>
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { UserInfo } from <span class="hljs-string">'./currentUser'</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The reducer should…</p></div></div><div class="code"><div class="wrapper">describe(<span class="hljs-string">'Current User reducer'</span>, () =&gt; {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="provide-its-default-state">…provide its default state</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper">  it(<span class="hljs-string">'should return its initial state'</span>, () =&gt; {
+    <span class="hljs-keyword">const</span> initialState = <span class="hljs-literal">undefined</span>
+    <span class="hljs-keyword">const</span> expectedState = { loginState: <span class="hljs-string">'logged-out'</span> }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We always verify that the default state is correctly provided.  The
+simplest way to do this is to call it with an <code>undefined</code> initial state
+and an unknown-type action, then verify the result (here, a signed-out
+user).</p></div></div><div class="code"><div class="wrapper">    expect(reducer(initialState, { <span class="hljs-keyword">type</span>: <span class="hljs-string">'unknown'</span> })).toEqual(expectedState)
+  })</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="handle-sign-in">…handle sign-in</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper">  it(<span class="hljs-string">'should handle login steps'</span>, () =&gt; {
+    <span class="hljs-keyword">const</span> email = <span class="hljs-string">'john@example.com'</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Always the same playbook:</p>
+<p>1) Define the initial state and action elements</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">const</span> initialState: UserInfo = { loginState: <span class="hljs-string">'logged-out'</span> }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>2) Call the reducer with an appropriate prior state (<code>initialState</code>) and
+   the action <strong>produced by the creator</strong> (this makes it a dual test of
+   both the reducer and the action creator).  Then verify the returned
+   new state.</p></div></div><div class="code"><div class="wrapper">    expect(reducer(initialState, logIn({ email, password: <span class="hljs-string">'foobar'</span> }))).toEqual(
+      {
+        loginState: <span class="hljs-string">'pending'</span>,
+      }
+    )
+
+    expect(reducer(initialState, logInSuccess({ email }))).toEqual({
+      loginState: <span class="hljs-string">'logged-in'</span>,
+      email,
+    })
+
+    expect(reducer(initialState, logInFailure())).toEqual({
+      loginState: <span class="hljs-string">'failure'</span>,
+    })
+  })</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="handle-sign-out">…handle sign-out</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper">  it(<span class="hljs-string">'should handle logout'</span>, () =&gt; {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Let&#39;s use the opposite (signed-in) state and verify the result, hence a
+signed-out state.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">const</span> initialState: UserInfo = {
+      loginState: <span class="hljs-string">'logged-in'</span>,
+      email: <span class="hljs-string">'john@example.com'</span>,
+    }
+    <span class="hljs-keyword">const</span> expectedState: UserInfo = { loginState: <span class="hljs-string">'logged-out'</span> }
+
+    expect(reducer(initialState, logOut())).toEqual(expectedState)
+  })</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Note that we might also test, for sheer completeness, that on any unknown
+action the state is untouched.  Try it maybe?  When using TypeScript with
+Redux Toolkit though, things would get dicey as we&#39;d get type errors!</p></div></div><div class="code"><div class="wrapper">})</div></div></div></div></body></html>

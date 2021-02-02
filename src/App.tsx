@@ -1,3 +1,6 @@
+// Toplevel application component
+// ==============================
+
 import { Provider } from 'react-redux'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 
@@ -10,6 +13,12 @@ import store from './store'
 
 export default function App() {
   return (
+    // We wrap everything with a
+    // [`Provider`](https://react-redux.js.org/api/provider) from React-Redux,
+    // so the app state and its `dispatch` method are accessible throughout the
+    // render tree.
+    //
+    // We then define routes for our app with the matching elements.
     <Provider store={store}>
       <Router>
         <RehydrationWaiter>

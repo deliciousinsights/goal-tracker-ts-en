@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="en"><head><title>history/HistoryScreen</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="history/HistoryScreen"><meta name="groc-project-path" content="src/history/HistoryScreen.tsx"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/history/HistoryScreen.tsx</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="historique">Historique</h1></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> { Link } from <span class="hljs-string">'react-router-dom'</span>
+<span class="hljs-keyword">import</span> { useEffect } from <span class="hljs-string">'react'</span>
+
+<span class="hljs-keyword">import</span> ArrowBack from <span class="hljs-string">'@mui/icons-material/ArrowBack'</span>
+<span class="hljs-keyword">import</span> Button from <span class="hljs-string">'@mui/material/Button'</span>
+<span class="hljs-keyword">import</span> Card from <span class="hljs-string">'@mui/material/Card'</span>
+<span class="hljs-keyword">import</span> CardActions from <span class="hljs-string">'@mui/material/CardActions'</span>
+<span class="hljs-keyword">import</span> CardContent from <span class="hljs-string">'@mui/material/CardContent'</span>
+<span class="hljs-keyword">import</span> CardHeader from <span class="hljs-string">'@mui/material/CardHeader'</span>
+<span class="hljs-keyword">import</span> ClearIcon from <span class="hljs-string">'@mui/icons-material/Clear'</span>
+<span class="hljs-keyword">import</span> Typography from <span class="hljs-string">'@mui/material/Typography'</span>
+
+<span class="hljs-keyword">import</span> { clearHistory } from <span class="hljs-string">'../reducers/history'</span>
+<span class="hljs-keyword">import</span> HistoryDay from <span class="hljs-string">'./HistoryDay'</span>
+<span class="hljs-keyword">import</span> { useAppDispatch, useAppSelector } from <span class="hljs-string">'../store'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">HistoryScreen</span>(<span class="hljs-params"></span>) </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>At first render, we adjust the document title to make the browsing history
+usable (and not a ton of identical titles).  The <a href="https://beta.reactjs.org/learn/synchronizing-with-effects#step-2-specify-the-effect-dependencies">second
+argument</a>
+is an empty dependency list that tells React only to run the side effect at
+mount time.</p></div></div><div class="code"><div class="wrapper">  useEffect(() =&gt; {
+    <span class="hljs-built_in">document</span>.title = <span class="hljs-string">'My history'</span>
+  }, [])</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We&#39;re interested in the <code>goals</code> and <code>history</code> slices of our App State.  As
+a consequence, changes to other parts of the App State wouldn&#39;t trigger a
+re-render here.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">const</span> { goals, history } = useAppSelector(({ goals, history }) =&gt; ({
+    goals,
+    history,
+  }))</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>As we&#39;re about to ask the store to trigger history clearing, we need its
+<code>dispatch</code> to send it our action.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">const</span> dispatch = useAppDispatch()
+
+  <span class="hljs-keyword">return</span> (</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>When you use a button for something that is actually a link, especially a
+<a href="https://reactrouter.com/en/main/components/link"><code>&lt;Link&gt;</code></a>, use MUI&#39;s
+<a href="https://mui.com/material-ui/api/button/#props"><code>component</code></a> prop to
+alter its outermost rendered component (instead of the default <code>button</code>).
+Props unused by <code>Button</code> are then passed as-is to the alternative
+component (in our case, that would be the <code>to</code> prop).</p></div></div><div class="code"><div class="wrapper">    &lt;&gt;
+      &lt;Button component={Link} startIcon={&lt;ArrowBack /&gt;} to=<span class="hljs-string">'/'</span> variant=<span class="hljs-string">'text'</span>&gt;
+        Back
+      &lt;<span class="hljs-regexp">/Button&gt;
+      &lt;Card className='history'&gt;
+        &lt;CardHeader title='History' /</span>&gt;
+        &lt;CardContent&gt;
+          {history.map((dayStats) =&gt; (</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Always remember to define a <em>stable</em>, unique association between
+the original data item and its component inside a <code>map</code>, <a href="https://beta.reactjs.org/learn/rendering-lists#keeping-list-items-in-order-with-key">using
+the <code>key=</code>
+prop</a>.
+Otherwise things could get bizarre in some situations (or just
+needlessly slow).</p></div></div><div class="code"><div class="wrapper">            &lt;HistoryDay goals={goals} key={dayStats.date} stats={dayStats} /&gt;
+          ))}
+          {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Here&#39;s a classic example of <a href="https://beta.reactjs.org/learn/conditional-rendering">conditional
+rendering</a>:
+a condition followed by <code>&amp;&amp;</code> and the element.  If we also had an
+“else” we&#39;d go with a ternary.</p></div></div><div class="code"><div class="wrapper">            history.length === <span class="hljs-number">0</span> &amp;&amp; &lt;Typography&gt;No history yet&lt;<span class="hljs-regexp">/Typography&gt;
+          }
+        &lt;/</span>CardContent&gt;
+        {history.length &gt; <span class="hljs-number">0</span> &amp;&amp; (
+          &lt;CardActions&gt;
+            &lt;Button
+              onClick={() =&gt; dispatch(clearHistory())}
+              startIcon={&lt;ClearIcon /&gt;}
+              variant=<span class="hljs-string">'contained'</span>
+            &gt;
+              Clear history
+            &lt;<span class="hljs-regexp">/Button&gt;
+          &lt;/</span>CardActions&gt;
+        )}
+      &lt;<span class="hljs-regexp">/Card&gt;
+    &lt;/</span>&gt;
+  )
+}</div></div></div></div></body></html>

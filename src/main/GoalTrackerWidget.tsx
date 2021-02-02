@@ -1,3 +1,6 @@
+// Goal progress for today
+// =======================
+
 import Add from '@mui/icons-material/Add'
 import Fab from '@mui/material/Fab'
 import ThumbUp from '@mui/icons-material/ThumbUp'
@@ -13,7 +16,10 @@ interface GTWProps {
   onProgress?: (goal: Goal) => void
 }
 
+// Section of the main screen focusing on a single goal.  Provides a description
+// and the progress button, if applicable.
 export default function GoalTrackerWidget({
+  // Destructuring FTW!
   goal,
   goal: { name, units, target },
   onProgress,

@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en"><head><title>reducers/closeDay</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="reducers/closeDay"><meta name="groc-project-path" content="src/reducers/closeDay.ts"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/reducers/closeDay.ts</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="daily-reset-reducer">Daily reset (reducer)</h1></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> { createAction, createReducer } from <span class="hljs-string">'@reduxjs/toolkit'</span>
+
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { HistoryEntry } from <span class="hljs-string">'./history'</span>
+<span class="hljs-keyword">import</span> { isoDate } from <span class="hljs-string">'../lib/helpers'</span>
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { RootState } from <span class="hljs-string">'../store'</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p><em>(<a href="https://github.com/erikras/ducks-modular-redux">Ducks file structure</a>)</em></p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="action-creators">Action Creators</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> closeDay = createAction(
+  <span class="hljs-string">'goal-tracker/closeDay/closeDay'</span>,</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We define our own action construction to provide “non-pure” data
+initialization (here date) so reducers stay pure and replay in the Dev
+Tools keeps working as expected.</p></div></div><div class="code"><div class="wrapper">  ({ date = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>() } = {}) =&gt; ({
+    payload: { date },
+  })
+)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="reducer">Reducer</h2></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The default value is provided by the meta-reducer in <code>index.ts</code></p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> createReducer&lt;RootState&gt;({} as RootState, (builder) =&gt; {
+  builder.addCase(closeDay, (state, { payload }) =&gt; {
+    state.history = tallyPreviousDay(state)
+    state.today = isoDate(payload.date)
+    state.todaysProgress = {}
+  })
+})</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="tallying-the-history-entry">Tallying the history entry</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">tallyPreviousDay</span>(<span class="hljs-params">{
+  goals,
+  history,
+  today,
+  todaysProgress,
+}: RootState</span>) </span>{
+  <span class="hljs-keyword">const</span> progresses: HistoryEntry[<span class="hljs-string">'progresses'</span>] = {}
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> { id, target } of goals) {
+    <span class="hljs-keyword">const</span> progress = todaysProgress[id] || <span class="hljs-number">0</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We only historize actual progress…</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (progress &gt; <span class="hljs-number">0</span>) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Let&#39;s not forget to denormalize the currently-defined target, lest it
+be changed later on and prevent contextualization of our progress.</p></div></div><div class="code"><div class="wrapper">      progresses[id] = [progress, target]
+    }
+  }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>No need to create empty history entries (zero progress that day)</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Object</span>.keys(progresses).length === <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">return</span> history
+  }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>At this state, <code>today</code> wasn&#39;t modified yet, it&#39;s the last day that was
+represented in the state.  We can therefore use it for the history entry&#39;s
+date.  Although Immer would let us <code>unshift</code> on the state, we might as well
+be explicitly immutable there and return a derived array.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">return</span> [{ date: today, progresses }, ...history]
+}</div></div></div></div></body></html>

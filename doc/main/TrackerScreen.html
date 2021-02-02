@@ -1,0 +1,120 @@
+<!DOCTYPE html><html lang="en"><head><title>main/TrackerScreen</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="main/TrackerScreen"><meta name="groc-project-path" content="src/main/TrackerScreen.tsx"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/main/TrackerScreen.tsx</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="goal-tracking-screen">Goal-tracking screen</h1></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> { Link } from <span class="hljs-string">'react-router-dom'</span>
+<span class="hljs-keyword">import</span> { useEffect } from <span class="hljs-string">'react'</span>
+
+<span class="hljs-keyword">import</span> Button from <span class="hljs-string">'@mui/material/Button'</span>
+<span class="hljs-keyword">import</span> Card from <span class="hljs-string">'@mui/material/Card'</span>
+<span class="hljs-keyword">import</span> CardActions from <span class="hljs-string">'@mui/material/CardActions'</span>
+<span class="hljs-keyword">import</span> CardContent from <span class="hljs-string">'@mui/material/CardContent'</span>
+<span class="hljs-keyword">import</span> CardHeader from <span class="hljs-string">'@mui/material/CardHeader'</span>
+<span class="hljs-keyword">import</span> HistoryIcon from <span class="hljs-string">'@mui/icons-material/History'</span>
+<span class="hljs-keyword">import</span> SettingsIcon from <span class="hljs-string">'@mui/icons-material/Settings'</span>
+<span class="hljs-keyword">import</span> Slide from <span class="hljs-string">'@mui/material/Slide'</span>
+<span class="hljs-keyword">import</span> Snackbar from <span class="hljs-string">'@mui/material/Snackbar'</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Note how we&#39;re importing a CSS on the fly through a regular import.  We use
+<a href="https://github.com/css-modules/css-modules#readme">CSS Modules</a> here to get
+unique classes in production in order to avoid CSS scope conflicts.</p>
+<p>Create React App <a href="https://create-react-app.dev/docs/adding-a-css-modules-stylesheet">presets
+that</a> for
+us.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> classes from <span class="hljs-string">'./TrackerScreen.module.css'</span>
+<span class="hljs-keyword">import</span> { formatDate, getDayCounts } from <span class="hljs-string">'../lib/helpers'</span>
+<span class="hljs-keyword">import</span> Gauge from <span class="hljs-string">'../shared/Gauge'</span>
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { Goal } from <span class="hljs-string">'../reducers/goals'</span>
+<span class="hljs-keyword">import</span> GoalTrackerWidget from <span class="hljs-string">'./GoalTrackerWidget'</span>
+<span class="hljs-keyword">import</span> { progressOnGoal } from <span class="hljs-string">'../reducers/todaysProgress'</span>
+<span class="hljs-keyword">import</span> { requestNotificationPermission } from <span class="hljs-string">'../reducers/config'</span>
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { RootState } from <span class="hljs-string">'../store'</span>
+<span class="hljs-keyword">import</span> { useAppDispatch, useAppSelector } from <span class="hljs-string">'../store'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">TrackerScreen</span>(<span class="hljs-params"></span>) </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>At first render, we adjust the document title to make the browsing history
+usable (and not a ton of identical titles).  The <a href="https://beta.reactjs.org/learn/synchronizing-with-effects#step-2-specify-the-effect-dependencies">second
+argument</a>
+is an empty dependency list that tells React only to run the side effect at
+mount time.</p></div></div><div class="code"><div class="wrapper">  useEffect(() =&gt; {
+    <span class="hljs-built_in">document</span>.title = <span class="hljs-string">'My goals today'</span>
+  }, [])</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We&#39;re interested only in the <code>canPromptForNotify</code>, <code>goals</code>, <code>today</code> and
+<code>todaysProgress</code> parts of our App State.  As a consequence, changes to
+other parts of the App State wouldn&#39;t trigger a re-render here.  The
+<code>selectState</code> selector is defined further down in this file.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">const</span> { canPromptForNotify, goals, today, todaysProgress } =
+    useAppSelector(selectState)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>As we&#39;re about to ask the store to progress on goals, we need its
+<code>dispatch</code> to send it our actions.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">const</span> dispatch = useAppDispatch()
+
+  <span class="hljs-keyword">return</span> (
+    &lt;&gt;
+      &lt;Card className={classes.goalTracker}&gt;
+        &lt;CardHeader
+          subheader={&lt;Gauge {...overallProgress()} /&gt;}
+          title={formatDate(today, <span class="hljs-string">'medium'</span>)}
+        /&gt;
+        &lt;CardContent&gt;
+          {goals.map((goal) =&gt; (
+            &lt;GoalTrackerWidget
+              goal={goal}
+              key={goal.id}
+              onProgress={markGoalProgression}
+              progress={todaysProgress[goal.id] ?? <span class="hljs-number">0</span>}
+            /&gt;
+          ))}
+        &lt;<span class="hljs-regexp">/CardContent&gt;
+        &lt;CardActions&gt;
+          &lt;Button
+            color='secondary'
+            component={Link}
+            startIcon={&lt;HistoryIcon /</span>&gt;}
+            to=<span class="hljs-string">'/history'</span>
+            variant=<span class="hljs-string">'contained'</span>
+          &gt;
+            History
+          &lt;<span class="hljs-regexp">/Button&gt;
+          &lt;Button
+            component={Link}
+            startIcon={&lt;SettingsIcon /</span>&gt;}
+            to=<span class="hljs-string">'/settings'</span>
+            variant=<span class="hljs-string">'contained'</span>
+          &gt;
+            Settings
+          &lt;<span class="hljs-regexp">/Button&gt;
+        &lt;/</span>CardActions&gt;
+      &lt;<span class="hljs-regexp">/Card&gt;
+      &lt;Snackbar
+        action={
+          &lt;Button
+            color='info'
+            onClick={() =&gt; dispatch(requestNotificationPermission())}
+            variant='text'
+          &gt;
+            Tell us
+          &lt;/</span>Button&gt;
+        }
+        message=<span class="hljs-string">'Would you like to get reminded when your day gets historized?'</span>
+        open={canPromptForNotify}
+        TransitionComponent={Slide}
+      /&gt;
+    &lt;<span class="hljs-regexp">/&gt;
+  )
+</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Callback for the <code>onProgress</code> prop of <code>&lt;GoalTrackerWidget /&gt;</code> instances,
+that will trigger the actual progress on the goal in the app state. As it
+is not inline, TS can&#39;t infer its signature in a reliable way and we have
+to make it explicit.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">markGoalProgression</span>(<span class="hljs-params">{ id }: Goal</span>) </span>{
+    dispatch(progressOnGoal({ goalId: id }))
+  }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Tiny business method that computes the overall progress percentage on our
+daily goals today.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">overallProgress</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">const</span> { totalProgress, totalTarget } = getDayCounts(todaysProgress, goals)
+
+    <span class="hljs-keyword">return</span> { value: totalProgress, max: totalTarget }
+  }
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Selector for the app state parts our component is interested in.  The single
+argument is the whole App State, the returned value will be returned by the
+<a href="https://react-redux.js.org/using-react-redux/usage-with-typescript#define-typed-hooks"><code>useAppSelector()</code></a>
+call we pass this selector to. As it is not inline, TS can&#39;t infer its
+signature in a reliable way and we have to make it explicit.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">selectState</span>(<span class="hljs-params">{
+  config: { canPromptForNotify },
+  goals,
+  today,
+  todaysProgress,
+}: RootState</span>) </span>{
+  <span class="hljs-keyword">return</span> {
+    canPromptForNotify,
+    goals,
+    today,
+    todaysProgress,
+  }
+}</div></div></div></div></body></html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en"><head><title>reducers/goals</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="reducers/goals"><meta name="groc-project-path" content="src/reducers/goals.ts"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/reducers/goals.ts</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="goals-reducer">Goals (reducer)</h1></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> { createAction, createReducer } from <span class="hljs-string">'@reduxjs/toolkit'</span>
+<span class="hljs-keyword">import</span> ObjectID from <span class="hljs-string">'bson-objectid'</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p><em>(<a href="https://github.com/erikras/ducks-modular-redux">Ducks file structure</a>)</em></p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> Goal = {
+  id: <span class="hljs-built_in">string</span>
+  name: <span class="hljs-built_in">string</span>
+  target: <span class="hljs-built_in">number</span>
+  units: <span class="hljs-built_in">string</span>
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="action-creators">Action Creators</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> addGoal = createAction(
+  <span class="hljs-string">'goal-tracker/goals/addGoal'</span>,</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We define our own action construction to provide “non-pure” data
+initialization (here Object IDs) so reducers stay pure and replay in the
+Dev Tools keeps working as expected.</p></div></div><div class="code"><div class="wrapper">  (payload: Omit&lt;Goal, <span class="hljs-string">'id'</span>&gt;) =&gt; ({
+    payload: { ...payload, id: ObjectID().toHexString() },
+  })
+)
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> removeGoal = createAction&lt;Pick&lt;Goal, <span class="hljs-string">'id'</span>&gt;&gt;(
+  <span class="hljs-string">'goal-tracker/goals/removeGoal'</span>
+)
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> updateGoal = createAction&lt;Goal&gt;(<span class="hljs-string">'goal-tracker/goals/updateGoal'</span>)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="reducer">Reducer</h2></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>By default, <code>goals</code> is <code>[]</code> (no defined goals)</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> createReducer&lt;Goal[]&gt;([], (builder) =&gt; {
+  builder
+    .addCase(addGoal, (state, { payload }) =&gt; {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>See how, thanks to our reducers being auto-wrapped by Immer, we can
+afford the luxury of using mutative APIs without losing actual
+immutability!</p></div></div><div class="code"><div class="wrapper">      state.push(payload)
+    })
+    .addCase(removeGoal, (state, { payload }) =&gt; {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Here however, the immutable approach using <code>filter</code> and <code>map</code> is
+actually more concise and readable than the mutative one, so why not
+use it?</p></div></div><div class="code"><div class="wrapper">      <span class="hljs-keyword">return</span> state.filter(({ id }) =&gt; id !== payload.id)
+    })
+    .addCase(updateGoal, (state, action) =&gt; {
+      <span class="hljs-keyword">return</span> state.map((goal) =&gt;
+        goal.id === action.payload.id ? action.payload : goal
+      )
+    })
+})</div></div></div></div></body></html>

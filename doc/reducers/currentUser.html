@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><title>reducers/currentUser</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="reducers/currentUser"><meta name="groc-project-path" content="src/reducers/currentUser.ts"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/reducers/currentUser.ts</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="current-user-reducer">Current user (reducer)</h1></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> { createAction, createReducer } from <span class="hljs-string">'@reduxjs/toolkit'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> UserInfo =
+  | { loginState: <span class="hljs-string">'logged-out'</span> | <span class="hljs-string">'pending'</span> | <span class="hljs-string">'failure'</span> }
+  | { loginState: <span class="hljs-string">'logged-in'</span>; email: <span class="hljs-built_in">string</span> }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="action-creators">Action Creators</h2></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>This action creator is async, even if doesn&#39;t immediately show.  There are
+many ways of doing async actions in Redux (and Redux Toolkit presets thunk
+and promise middlewares, the latter of which we use for notification
+permission management in <code>config.ts</code>), but because this one is about a
+network API call, we leverage all the goodness from
+<a href="https://github.com/redux-offline/redux-offline">redux-offline</a>, itself built
+on top of the wonderful
+<a href="https://github.com/rt2zz/redux-persist">redux-persist</a>.  Once this module is
+<a href="./store.html">set up in the store</a>), we can decorate ations with a
+<code>meta.offline</code> field, which can contain properties <code>effect</code> (describing the
+API call), <code>commit</code> (the action to dispatch on a successful response, with
+HTTP codes 2xx) and <code>rollback</code> (the action to dispatch on a failed network
+call or failure responses with e.g. HTTP code 401).</p>
+<p>We&#39;re using a <em>pessimistic</em> action here: we must consider it failed until
+proven successful (it&#39;s a login, after all).  So we finalize the login, via
+the <code>loginSuccess</code> action, in the <code>commit</code> descriptor.  The <code>rollback</code>
+descriptor triggers a <code>loginFailure</code> action so the UI can reflect the issue
+(with a snackbar in the login screen).</p>
+<p>Dev note: although action creators spawned by <code>createAction</code> have a default
+<code>toString()</code> behavior that returns their identifier, which lets us use as
+<code>case</code> arguments in our reducers, that conversion isn&#39;t automatically done by
+Redux-Offline when crafting its &quot;result actions&quot; for triggering, so we
+explicitly grab their string representation to keep a useful debug log.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">logIn</span>(<span class="hljs-params">payload: { email: <span class="hljs-built_in">string</span>; password: <span class="hljs-built_in">string</span> }</span>) </span>{
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-keyword">type</span>: logInStart.toString(),
+    meta: {
+      offline: {
+        effect: {
+          json: payload,
+          method: <span class="hljs-string">'POST'</span>,
+          url: `http:<span class="hljs-comment">//${window.location.hostname}:3001/api/v1/sessions`,</span>
+        },
+        commit: { <span class="hljs-keyword">type</span>: logInSuccess.toString() },
+        rollback: { <span class="hljs-keyword">type</span>: logInFailure.toString() },
+      },
+    },
+  }
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Note that these are synchrnoous “steps” for the otherwise-async login
+process.  They are just exported to we can test them individually in the test
+suite for this reducer.  Our app code would work without these being exported.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> logInStart = createAction(<span class="hljs-string">'goal-tracker/currentUser/logInStart'</span>)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> logInSuccess = createAction&lt;{ email: <span class="hljs-built_in">string</span> }&gt;(
+  <span class="hljs-string">'goal-tracker/currentUser/logInSuccess'</span>
+)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> logInFailure = createAction(
+  <span class="hljs-string">'goal-tracker/currentUser/logInFailure'</span>
+)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> logOut = createAction(<span class="hljs-string">'goal-tracker/currentUser/logOut'</span>)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="reducer">Reducer</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> createReducer&lt;UserInfo&gt;(
+  { loginState: <span class="hljs-string">'logged-out'</span> },
+  (builder) =&gt; {
+    builder
+      .addCase(logInStart, () =&gt; ({ loginState: <span class="hljs-string">'pending'</span> }))
+      .addCase(logInFailure, () =&gt; ({ loginState: <span class="hljs-string">'failure'</span> }))
+      .addCase(logInSuccess, (state, { payload: { email } }) =&gt; ({
+        loginState: <span class="hljs-string">'logged-in'</span>,
+        email,
+      }))
+      .addCase(logOut, () =&gt; ({ loginState: <span class="hljs-string">'logged-out'</span> }))
+  }
+)</div></div></div></div></body></html>

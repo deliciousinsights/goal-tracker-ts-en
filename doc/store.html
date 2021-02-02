@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><title>store</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="store"><meta name="groc-project-path" content="src/store.ts"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/store.ts</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="app-state">App State</h1></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">import</span> { configureStore } from <span class="hljs-string">'@reduxjs/toolkit'</span>
+<span class="hljs-keyword">import</span> { offline } from <span class="hljs-string">'@redux-offline/redux-offline'</span>
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { StoreEnhancer } from <span class="hljs-string">'@reduxjs/toolkit'</span>
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { TypedUseSelectorHook } from <span class="hljs-string">'react-redux'</span>
+<span class="hljs-keyword">import</span> { useDispatch, useSelector } from <span class="hljs-string">'react-redux'</span>
+
+<span class="hljs-keyword">import</span> DEFAULT_STATE from <span class="hljs-string">'./default-state'</span>
+<span class="hljs-keyword">import</span> goalTrackerReducer from <span class="hljs-string">'./reducers'</span>
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { RootState } from <span class="hljs-string">'./reducers'</span>
+
+<span class="hljs-keyword">export</span> { RootState }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Definition of the default state (ignoring hydration).  In production we&#39;d
+start empty, and all Redux slice reducers would provide granular defaults.</p>
+<p>The static import of <code>DEFAULT_STATE</code> (as opposed to a dynamic import) may
+seem like it burdens the production bundle, but it&#39;s actually preferable.
+First, the ternary below will inline to <code>{}</code> in a production build, resulting
+in <em>de facto</em> purge of the superfluous import during the Dead Code
+Elimination (DCE) phase. Second, it prevents superfluous code splitting in
+development.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">const</span> state = (
+  process.env.NODE_ENV === <span class="hljs-string">'production'</span> ? {} : DEFAULT_STATE
+) as RootState</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>This export lets us easily build stores to our exact specs (usually for a
+specific initial state), e.g. in tests or Storybook.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">makeStore</span>(<span class="hljs-params">
+  preloadedState = state,
+  { shouldPersist = process.env.NODE_ENV !== 'test' } = {}
+</span>) </span>{
+  <span class="hljs-keyword">const</span> store = configureStore({
+    preloadedState,
+    reducer: goalTrackerReducer,</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>redux-offline&#39;s typing isn&#39;t optimal yet, so we need to manually narrow
+the result type ourselves.</p></div></div><div class="code"><div class="wrapper">    enhancers: shouldPersist ? [offline({}) as StoreEnhancer] : [],
+  })</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>HMR management of reducers during development</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span> &amp;&amp; <span class="hljs-module"><span class="hljs-keyword">module</span>.hot) </span>{
+    <span class="hljs-module"><span class="hljs-keyword">module</span>.hot.accept('./reducers', () =&gt;
+      store.replaceReducer(goalTrackerReducer)
+    )
+  }
+
+  return store
+}
+</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Creation of the default store (for dev and prod mostly, tests and Storybook
+would create their own custom ones for every scenario).</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">const</span> store = makeStore()</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p><a href="https://react-redux.js.org/using-react-redux/usage-with-typescript#define-typed-hooks">Recommended</a>
+wrapping, for automatic typing purposes, of the base <code>useDispatch</code> and
+<code>useSelector</code> hooks, so we can be spared explicit typing when providing
+inline selectors, mostly.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">type</span> AppDispatch = <span class="hljs-keyword">typeof</span> store.dispatch
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> useAppDispatch: () =&gt; AppDispatch = useDispatch
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> useAppSelector: TypedUseSelectorHook&lt;RootState&gt; = useSelector</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The store for dev/prod is our default export.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> store</div></div></div></div></body></html>
