@@ -22,11 +22,11 @@ export default function GoalTrackerWidget({
         size='small'
         aria-label={`Make progress on ${name}`}
       >
-        <Add />
+        <Add data-testid='in-progress' />
       </Fab>
     ) : (
       <Fab disabled size='small' aria-label='Goal achieved, bravo!'>
-        <ThumbUp />
+        <ThumbUp data-testid='completed' />
       </Fab>
     )
 
