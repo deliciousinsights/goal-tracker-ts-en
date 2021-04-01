@@ -9,10 +9,13 @@ import Gauge from '../shared/Gauge'
 interface GTWProps {
   goal: Goal
   progress: number
+  onProgress?: (goal: Goal) => void
 }
 
 export default function GoalTrackerWidget({
+  goal,
   goal: { name, units, target },
+  onProgress,
   progress,
 }: GTWProps) {
   const adderComponent =
@@ -21,6 +24,7 @@ export default function GoalTrackerWidget({
         color='secondary'
         size='small'
         aria-label={`Make progress on ${name}`}
+        onClick={() => onProgress?.(goal)}
       >
         <Add data-testid='in-progress' />
       </Fab>
